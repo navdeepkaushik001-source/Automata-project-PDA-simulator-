@@ -1,0 +1,18 @@
+{
+  "name": "a^n b^n (n >= 1) - Empty Stack",
+  "description": "Recognizes L = { a^n b^n | n >= 1 } by emptying stack. Final states set is empty (F = {}).",
+  "states": ["q0", "q1"],
+  "input_alphabet": ["a", "b"],
+  "stack_alphabet": ["A", "Z0"],
+  "start_state": "q0",
+  "start_stack_symbol": "Z0",
+  "final_states": [],
+  "acceptance_mode": "empty_stack",
+  "transitions": [
+    { "from_state": "q0", "input_symbol": "a", "pop_symbol": "Z0", "to_state": "q0", "push_symbols": "AZ0" },
+    { "from_state": "q0", "input_symbol": "a", "pop_symbol": "A",  "to_state": "q0", "push_symbols": "AA" },
+    { "from_state": "q0", "input_symbol": "b", "pop_symbol": "A",  "to_state": "q1", "push_symbols": "ε" },
+    { "from_state": "q1", "input_symbol": "b", "pop_symbol": "A",  "to_state": "q1", "push_symbols": "ε" },
+    { "from_state": "q1", "input_symbol": "ε", "pop_symbol": "Z0", "to_state": "q1", "push_symbols": "ε" }
+  ]
+}

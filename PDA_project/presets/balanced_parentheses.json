@@ -1,0 +1,25 @@
+{
+  "name": "Balanced Parentheses & Brackets",
+  "description": "Deterministic PDA that validates correctly nested parentheses () and square brackets [].",
+  "states": ["q0", "q1"],
+  "input_alphabet": ["(", ")", "[", "]"],
+  "stack_alphabet": ["P", "B", "Z0"],
+  "start_state": "q0",
+  "start_stack_symbol": "Z0",
+  "final_states": ["q1"],
+  "acceptance_mode": "final_state",
+  "transitions": [
+    { "from_state": "q0", "input_symbol": "(", "pop_symbol": "Z0", "to_state": "q0", "push_symbols": "PZ0" },
+    { "from_state": "q0", "input_symbol": "(", "pop_symbol": "P",  "to_state": "q0", "push_symbols": "PP" },
+    { "from_state": "q0", "input_symbol": "(", "pop_symbol": "B",  "to_state": "q0", "push_symbols": "PB" },
+
+    { "from_state": "q0", "input_symbol": "[", "pop_symbol": "Z0", "to_state": "q0", "push_symbols": "BZ0" },
+    { "from_state": "q0", "input_symbol": "[", "pop_symbol": "P",  "to_state": "q0", "push_symbols": "BP" },
+    { "from_state": "q0", "input_symbol": "[", "pop_symbol": "B",  "to_state": "q0", "push_symbols": "BB" },
+
+    { "from_state": "q0", "input_symbol": ")", "pop_symbol": "P",  "to_state": "q0", "push_symbols": "ε" },
+    { "from_state": "q0", "input_symbol": "]", "pop_symbol": "B",  "to_state": "q0", "push_symbols": "ε" },
+
+    { "from_state": "q0", "input_symbol": "ε", "pop_symbol": "Z0", "to_state": "q1", "push_symbols": "Z0" }
+  ]
+}

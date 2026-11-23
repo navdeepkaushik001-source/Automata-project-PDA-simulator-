@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pushdown Automata Simulator - Project Presentation | CSET302</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --dark: #0f172a;
+      --navy: #1e293b;
+      --teal: #10b981;
+      --red: #ef4444;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .deck-container {
+      width: 1000px;
+      height: 600px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .slide {
+      flex: 1;
+      padding: 35px 45px;
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.3s ease;
+    }
+    .slide.active {
+      display: flex;
+    }
+    .slide.title-slide {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .category-tag {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .slide-title {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    .slide-body {
+      flex: 1;
+      display: grid;
+      gap: 16px;
+    }
+    .grid-2 {
+      grid-template-columns: 1fr 1fr;
+    }
+    .grid-3 {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+    .card h3 {
+      font-size: 1.15rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+    .card ul {
+      list-style-type: disc;
+      padding-left: 20px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .card ul li {
+      margin-bottom: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: var(--dark);
+      color: #ffffff;
+      font-weight: 600;
+    }
+    tr:nth-child(even) { background: #f8fafc; }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .badge-pass { background: #dcfce7; color: #15803d; }
+    .nav-bar {
+      height: 48px;
+      background: #f1f5f9;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+    }
+    .nav-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .nav-btn:hover { background: #e2e8f0; }
+    .slide-counter {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck-container">
+
+    <!-- Slide 1: Title -->
+    <div class="slide title-slide active" data-index="1">
+      <div style="color: var(--teal); font-weight: 700; font-size: 0.95rem; margin-bottom: 8px; letter-spacing: 0.05em;">
+        BENNETT UNIVERSITY • SCSET • CSET302: AUTOMATA THEORY AND COMPUTABILITY
+      </div>
+      <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; line-height: 1.2;">
+        Pushdown Automata (PDA) Simulator
+      </h1>
+      <p style="color: #94a3b8; font-size: 1rem; max-width: 820px; margin-bottom: 22px;">
+        Interactive Visual Simulator, Dual Acceptance Modes (Lf & Le), Non-Deterministic BFS Traversal & Automated Verification Suite
+      </p>
+      
+      <div style="background: rgba(30,41,59,0.85); border: 1px solid var(--primary); padding: 14px 20px; border-radius: 10px; font-size: 0.88rem; color: #f8fafc; max-width: 880px; text-align: left;">
+        <div style="color: var(--teal); font-weight: 700; margin-bottom: 6px;">PROJECT GROUP #12 — STUDENT ROSTER:</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; font-size: 0.85rem;">
+          <div>• <strong>NAVDEEP KAUSHIK</strong> (S24CSEU2699) — Project Lead</div>
+          <div>• <strong>SHRAVAN KUMAR</strong> (S24CSEU2677) — Core Engine & BFS</div>
+          <div>• <strong>AYUSH KUMAR</strong> (S24CSEU2698) — UI Visualizer</div>
+          <div>• <strong>SRIJAN PANDEY</strong> (S24CSEU2691) — QA & Test Suite</div>
+          <div>• <strong>PIYUSH DAGAR</strong> (S24CSEU2680) — Documentation Lead</div>
+          <div style="color: #93c5fd;">• Submitted to: <strong>Rashmi Ma’am</strong> (SCSET)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2: Problem Statement -->
+    <div class="slide" data-index="2">
+      <div class="category-tag">Theoretical Foundation</div>
+      <h2 class="slide-title">1. Problem Statement & Motivation</h2>
+      <div class="slide-body grid-2">
+        <div class="card">
+          <h3>Limitations of Finite Automata (FA)</h3>
+          <ul>
+            <li><strong>Finite Memory:</strong> DFAs and NFAs can only track information in states; they lack unbounded storage.</li>
+            <li><strong>Inability to Match / Count:</strong> Cannot recognize basic matching languages like <code>{ a^n b^n | n ≥ 1 }</code> or nested brackets.</li>
+            <li><strong>Chomsky Type-3 Ceiling:</strong> FAs are strictly bounded to Regular Languages.</li>
+            <li><strong>Need for LIFO Stack:</strong> Parsing nested programming language grammars requires an unbounded stack.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Our Simulator's Solution</h3>
+          <ul>
+            <li><strong>Interactive Stack Visualizer:</strong> Animated physical LIFO container with live push/pop operations and Top pointer.</li>
+            <li><strong>Dual Acceptance Modes:</strong> First-class support for both Final State (L_f) and Empty Stack (L_e) modes.</li>
+            <li><strong>NPDA BFS Engine:</strong> Solves non-deterministic branching without falling into infinite cycles.</li>
+            <li><strong>Diagnostic Error Handling:</strong> Explains precisely why an invalid string (e.g. <code>bbaa</code>) halts and rejects at step 0.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: 7-Tuple Model -->
+    <div class="slide" data-index="3">
+      <div class="category-tag">Formal Model</div>
+      <h2 class="slide-title">2. Formal 7-Tuple Specification</h2>
+      <div style="background: var(--dark); color: #fff; padding: 12px; border-radius: 8px; text-align: center; font-size: 1.25rem; font-weight: 700; margin-bottom: 20px;">
+        M = ( Q,  Σ,  Γ,  δ,  q0,  Z0,  F )
+      </div>
+      <div class="slide-body grid-3">
+        <div class="card">
+          <h3>Control States</h3>
+          <ul>
+            <li><strong>Q:</strong> Finite set of states.</li>
+            <li><strong>q0 ∈ Q:</strong> Start / initial state.</li>
+            <li><strong>F ⊆ Q:</strong> Set of accepting states.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Alphabets & Stack</h3>
+          <ul>
+            <li><strong>Σ:</strong> Finite input alphabet (e.g., {a, b}).</li>
+            <li><strong>Γ:</strong> Finite stack alphabet (e.g., {A, Z0}).</li>
+            <li><strong>Z0 ∈ Γ:</strong> Start stack symbol.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Transition Function</h3>
+          <ul>
+            <li><strong>δ:</strong> Q × (Σ ∪ {ε}) × Γ → P(Q × Γ*).</li>
+            <li><strong>ID (q, w, γ):</strong> Instantaneous Description tracking state, tape, & stack.</li>
+            <li><strong>Step ⊢:</strong> Configuration transitions.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Acceptance Modes -->
+    <div class="slide" data-index="4">
+      <div class="category-tag">Theory & Equivalence</div>
+      <h2 class="slide-title">3. Dual Acceptance Modes & Equivalence Theorem</h2>
+      <div class="slide-body grid-2">
+        <div class="card">
+          <h3>1. Acceptance by Final State: L(M)</h3>
+          <ul>
+            <li><strong>Rule:</strong> Input is accepted if starting from (q0, w, Z0), machine halts in <strong>state q ∈ F</strong> with input exhausted.</li>
+            <li><strong>Stack contents:</strong> Does NOT need to be empty (γ ∈ Γ*).</li>
+            <li><strong>Formula:</strong> <code>L(M) = { w | (q0, w, Z0) ⊢* (q, ε, γ), q ∈ F }</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>2. Acceptance by Empty Stack: N(M)</h3>
+          <ul>
+            <li><strong>Rule:</strong> Input is accepted if starting from (q0, w, Z0), the <strong>stack becomes completely empty (ε)</strong> upon input exhaustion.</li>
+            <li><strong>Final State:</strong> State upon halting is irrelevant (F can be empty).</li>
+            <li><strong>Formula:</strong> <code>N(M) = { w | (q0, w, Z0) ⊢* (q, ε, ε), q ∈ Q }</code></li>
+          </ul>
+        </div>
+      </div>
+      <div style="background: #eff6ff; border: 1px solid var(--primary); padding: 10px 16px; border-radius: 6px; margin-top: 14px; font-weight: 600; font-size: 0.9rem; color: #1e40af;">
+        Equivalence Theorem: L(M1) = N(M2) — The class of languages accepted by final state is identical to those accepted by empty stack (Context-Free Languages).
+      </div>
+    </div>
+
+    <!-- Slide 5: DPDA vs NPDA -->
+    <div class="slide" data-index="5">
+      <div class="category-tag">Automata Classification</div>
+      <h2 class="slide-title">4. Deterministic (DPDA) vs. Non-Deterministic (NPDA)</h2>
+      <div class="slide-body grid-2">
+        <div class="card">
+          <h3>Deterministic PDA (DPDA)</h3>
+          <ul>
+            <li>At most one transition per configuration: <code>|δ(q, a, X)| ≤ 1</code>.</li>
+            <li>If <code>δ(q, ε, X)</code> is defined, then <code>δ(q, a, X)</code> must be empty for all <code>a ∈ Σ</code>.</li>
+            <li>Recognizes Deterministic Context-Free Languages (DCFLs).</li>
+            <li>Cannot accept even palindromes <code>{ w w^R }</code> because the midpoint must be guessed.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Non-Deterministic PDA (NPDA)</h3>
+          <ul>
+            <li>Can have multiple valid transitions from a single configuration.</li>
+            <li>Recognizes the entire family of Context-Free Languages (CFLs).</li>
+            <li><strong>Our BFS Engine Solution:</strong>
+              <ul>
+                <li>Simulates all branches simultaneously level-by-level.</li>
+                <li>Finds the shortest accepting computation path.</li>
+                <li>Uses visited signature hashing to prevent infinite loops.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: Architecture -->
+    <div class="slide" data-index="6">
+      <div class="category-tag">Engineering Design</div>
+      <h2 class="slide-title">5. System Architecture & Modular Design</h2>
+      <div class="slide-body grid-3">
+        <div class="card">
+          <h3>Presentation Layer</h3>
+          <ul>
+            <li>Responsive HTML5/CSS3 UI.</li>
+            <li>Dynamic 7-tuple editing form.</li>
+            <li>Interactive Transition Table editor.</li>
+            <li>Playback controls (Play, Pause, Step Forward/Back, Speed).</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Visualizer Engine</h3>
+          <ul>
+            <li>Animated vertical LIFO stack.</li>
+            <li>Input tape head with <code>▲ HEAD</code>.</li>
+            <li>Interactive SVG State Graph with active node illumination.</li>
+            <li>Live ID mathematical banner: <code>(q, w, γ)</code>.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Computational Core</h3>
+          <ul>
+            <li>Python 3 standard engine (<code>pda_engine.py</code>).</li>
+            <li>Client-side JS engine (<code>pda_simulator.js</code>).</li>
+            <li>Automated DPDA/NPDA classifier.</li>
+            <li>Terminal CLI runner & test suite.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7: Presets -->
+    <div class="slide" data-index="7">
+      <div class="category-tag">Preset Library</div>
+      <h2 class="slide-title">6. Pre-Loaded Classical Benchmark Languages</h2>
+      <div style="overflow-y: auto; max-height: 400px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Language</th>
+              <th>Class</th>
+              <th>Mode</th>
+              <th>Sample Accepted Strings</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>L1: { a^n b^n | n ≥ 1 }</strong></td>
+              <td>DPDA</td>
+              <td>Final State</td>
+              <td><code>ab, aabb, aaabbb</code></td>
+            </tr>
+            <tr>
+              <td><strong>L2: { a^n b^n | n ≥ 1 }</strong></td>
+              <td>DPDA</td>
+              <td>Empty Stack</td>
+              <td><code>ab, aabb, aaabbb</code></td>
+            </tr>
+            <tr>
+              <td><strong>L3: { w c w^R | w ∈ {a,b}* }</strong></td>
+              <td>DPDA (Odd Palindrome)</td>
+              <td>Final State</td>
+              <td><code>c, aca, bcb, abcba</code></td>
+            </tr>
+            <tr>
+              <td><strong>L4: { w w^R | w ∈ {a,b}* }</strong></td>
+              <td>NPDA (Even Palindrome)</td>
+              <td>Final State</td>
+              <td><code>ε, aa, bb, abba, baab</code></td>
+            </tr>
+            <tr>
+              <td><strong>L5: Balanced Brackets () []</strong></td>
+              <td>DPDA / NPDA</td>
+              <td>Final State</td>
+              <td><code>(), [], ([]), ()[], [()]</code></td>
+            </tr>
+            <tr>
+              <td><strong>L6: Equal a's and b's</strong></td>
+              <td>DPDA</td>
+              <td>Final State</td>
+              <td><code>ab, ba, aabb, baba</code></td>
+            </tr>
+            <tr>
+              <td><strong>L7: { a^n b^2n | n ≥ 1 }</strong></td>
+              <td>DPDA (Asymmetric)</td>
+              <td>Final State</td>
+              <td><code>abb, aabbbb, aaabbbbbb</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Slide 8: Execution Trace & Rejection -->
+    <div class="slide" data-index="8">
+      <div class="category-tag">Simulation Dynamics</div>
+      <h2 class="slide-title">7. Trace Execution & Rejection Diagnostics</h2>
+      <div class="slide-body grid-2">
+        <div class="card">
+          <h3 style="color: var(--teal);">Accepted Trace: w = 'aabb'</h3>
+          <ul style="font-size: 0.85rem; line-height: 1.5;">
+            <li><strong>Step 0:</strong> (q0, aabb, Z0) — Initial Start</li>
+            <li><strong>Step 1:</strong> (q0, abb, AZ0) — Read 'a', Push AZ0</li>
+            <li><strong>Step 2:</strong> (q0, bb, AAZ0) — Read 'a', Push AA</li>
+            <li><strong>Step 3:</strong> (q1, b, AZ0) — Read 'b', Pop A</li>
+            <li><strong>Step 4:</strong> (q1, ε, Z0) — Read 'b', Pop A</li>
+            <li><strong>Step 5:</strong> (q2, ε, Z0) — ε-move to Final State</li>
+            <li><strong>Verdict:</strong> <span class="badge badge-pass">✔ ACCEPTED</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 style="color: var(--red);">Rejection Diagnostics: w = 'bbaa'</h3>
+          <ul style="font-size: 0.85rem; line-height: 1.5;">
+            <li><strong>Scenario:</strong> User enters string starting with 'b'.</li>
+            <li><strong>Dead Configuration:</strong> From state <code>q0</code> with stack <code>Z0</code>, no rule <code>δ(q0, b, Z0)</code> exists.</li>
+            <li><strong>Simulator Diagnostics:</strong>
+              <ul>
+                <li>Immediately displays: <strong>✗ INPUT REJECTED (Halted at Step 0)</strong></li>
+                <li>Tape cell <code>b</code> lights up in red with <code>▲ NO TRANSITION</code>.</li>
+                <li>ID banner provides detailed theoretical explanation.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 9: Verification -->
+    <div class="slide" data-index="9">
+      <div class="category-tag">Testing & Verification</div>
+      <h2 class="slide-title">8. Verification & Test Suite: 100% Pass Rate</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+        <div style="background: var(--teal); color: #fff; padding: 16px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 0.85rem; opacity: 0.9;">Total Test Cases</div>
+          <div style="font-size: 2rem; font-weight: 800;">21 / 21</div>
+          <div style="font-size: 0.8rem;">100% Pass Rate</div>
+        </div>
+        <div style="background: var(--primary); color: #fff; padding: 16px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 0.85rem; opacity: 0.9;">Automated Test Suites</div>
+          <div style="font-size: 2rem; font-weight: 800;">8 / 8</div>
+          <div style="font-size: 0.8rem;">test_pda.py (All Green)</div>
+        </div>
+        <div style="background: var(--dark); color: #fff; padding: 16px; border-radius: 8px; text-align: center;">
+          <div style="font-size: 0.85rem; opacity: 0.9;">Classic Presets</div>
+          <div style="font-size: 2rem; font-weight: 800;">7 Pre-Loaded</div>
+          <div style="font-size: 0.8rem;">Ready in 1-Click</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Edge Cases Covered</h3>
+        <ul>
+          <li><strong>Prefix Incompleteness:</strong> Rejects unconsumed prefixes like <code>aab</code> where stack has un-popped symbols.</li>
+          <li><strong>Empty String (ε):</strong> Rejects ε for n ≥ 1, but accepts ε for even palindromes.</li>
+          <li><strong>Symbol Alphabet Integrity:</strong> Flags invalid alphabet symbols immediately.</li>
+          <li><strong>Batch Test Runner:</strong> Live 1-click regression verification directly in the web UI.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Slide 10: Team Roles with Exact Bennett University Roster -->
+    <div class="slide" data-index="10">
+      <div class="category-tag">Bennett University — Group #12</div>
+      <h2 class="slide-title">9. Group Member Roles & Contributions</h2>
+      <div class="slide-body" style="gap: 8px;">
+        <div class="card" style="padding: 8px 14px;">
+          <strong style="color: var(--primary);">NAVDEEP KAUSHIK (S24CSEU2699) — Project Lead & System Architect:</strong><br>
+          <span style="font-size: 0.85rem;">Formulated formal 7-tuple model; designed multi-tier architecture; established determinism rules; chaired sprint reviews.</span>
+        </div>
+        <div class="card" style="padding: 8px 14px;">
+          <strong style="color: var(--primary);">SHRAVAN KUMAR (S24CSEU2677) — Core Automata Engine & BFS Developer:</strong><br>
+          <span style="font-size: 0.85rem;">Programmed Python engine (pda_engine.py); implemented BFS graph traversal with cycle prevention; built dual acceptance modes (Lf & Le).</span>
+        </div>
+        <div class="card" style="padding: 8px 14px;">
+          <strong style="color: var(--primary);">AYUSH KUMAR (S24CSEU2698) — Frontend UI & Visualizer Specialist:</strong><br>
+          <span style="font-size: 0.85rem;">Engineered animated vertical LIFO stack; dynamic SVG state transition graph with active glow; synchronous input tape visualizer.</span>
+        </div>
+        <div class="card" style="padding: 8px 14px;">
+          <strong style="color: var(--primary);">SRIJAN PANDEY (S24CSEU2691) — QA Engineer & Test Suite Lead:</strong><br>
+          <span style="font-size: 0.85rem;">Authored Python unit test harness (test_pda.py, 8 suites); 21-case experimental test matrix; curated 7 classic presets; manual validation traces.</span>
+        </div>
+        <div class="card" style="padding: 8px 14px;">
+          <strong style="color: var(--primary);">PIYUSH DAGAR (S24CSEU2680) — Technical Documentation & Deliverables Lead:</strong><br>
+          <span style="font-size: 0.85rem;">Authored Milestone-II Technical Documentation Report; compiled User Manual & Viva-Voce defense guide; managed presentation slides.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 11: Conclusion -->
+    <div class="slide title-slide" data-index="11">
+      <div style="color: var(--teal); font-weight: 700; font-size: 1rem; margin-bottom: 12px; letter-spacing: 0.05em;">
+        BENNETT UNIVERSITY • SCSET • CSET302
+      </div>
+      <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 12px;">
+        Thank You!
+      </h1>
+      <p style="color: #94a3b8; font-size: 1.15rem; margin-bottom: 20px;">
+        Ready for Live Demonstration and Viva-Voce Defense
+      </p>
+      <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.8; margin-bottom: 16px;">
+        <strong>Project Team:</strong> Navdeep Kaushik (S24CSEU2699), Shravan Kumar (S24CSEU2677), Ayush Kumar (S24CSEU2698), Srijan Pandey (S24CSEU2691), Piyush Dagar (S24CSEU2680)<br>
+        Submitted to: <strong>Rashmi Ma’am</strong>
+      </div>
+      <div style="font-size: 0.85rem; color: #93c5fd;">
+        Live Web Application: <strong>localhost:8080</strong> / <strong>index.html</strong>  |  CLI: <code>python3 pda_cli.py</code>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="nav-bar">
+      <button class="nav-btn" id="btn-prev">◀ Previous</button>
+      <span class="slide-counter" id="slide-counter">Slide 1 of 11</span>
+      <button class="nav-btn" id="btn-next">Next ▶</button>
+    </div>
+
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 11;
+
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('slide-counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+
+    function showSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+      currentSlide = index;
+
+      slides.forEach(s => s.classList.remove('active'));
+      const active = document.querySelector(`.slide[data-index="${currentSlide}"]`);
+      if (active) active.classList.add('active');
+
+      counter.textContent = `Slide ${currentSlide} of ${totalSlides}`;
+      btnPrev.disabled = currentSlide === 1;
+      btnNext.disabled = currentSlide === totalSlides;
+    }
+
+    btnPrev.addEventListener('click', () => showSlide(currentSlide - 1));
+    btnNext.addEventListener('click', () => showSlide(currentSlide + 1));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') showSlide(currentSlide + 1);
+      if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+    });
+
+    showSlide(1);
+  </script>
+</body>
+</html>

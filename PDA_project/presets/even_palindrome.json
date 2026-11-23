@@ -1,0 +1,27 @@
+{
+  "name": "Even Palindrome (w w^R) - NPDA",
+  "description": "Nondeterministic PDA for L = { w w^R | w in {a, b}* }. Guesses the center of the palindrome via an epsilon-transition from q0 to q1.",
+  "states": ["q0", "q1", "q2"],
+  "input_alphabet": ["a", "b"],
+  "stack_alphabet": ["A", "B", "Z0"],
+  "start_state": "q0",
+  "start_stack_symbol": "Z0",
+  "final_states": ["q2"],
+  "acceptance_mode": "final_state",
+  "transitions": [
+    { "from_state": "q0", "input_symbol": "a", "pop_symbol": "Z0", "to_state": "q0", "push_symbols": "AZ0" },
+    { "from_state": "q0", "input_symbol": "a", "pop_symbol": "A",  "to_state": "q0", "push_symbols": "AA" },
+    { "from_state": "q0", "input_symbol": "a", "pop_symbol": "B",  "to_state": "q0", "push_symbols": "AB" },
+    { "from_state": "q0", "input_symbol": "b", "pop_symbol": "Z0", "to_state": "q0", "push_symbols": "BZ0" },
+    { "from_state": "q0", "input_symbol": "b", "pop_symbol": "A",  "to_state": "q0", "push_symbols": "BA" },
+    { "from_state": "q0", "input_symbol": "b", "pop_symbol": "B",  "to_state": "q0", "push_symbols": "BB" },
+
+    { "from_state": "q0", "input_symbol": "ε", "pop_symbol": "Z0", "to_state": "q1", "push_symbols": "Z0" },
+    { "from_state": "q0", "input_symbol": "ε", "pop_symbol": "A",  "to_state": "q1", "push_symbols": "A" },
+    { "from_state": "q0", "input_symbol": "ε", "pop_symbol": "B",  "to_state": "q1", "push_symbols": "B" },
+
+    { "from_state": "q1", "input_symbol": "a", "pop_symbol": "A",  "to_state": "q1", "push_symbols": "ε" },
+    { "from_state": "q1", "input_symbol": "b", "pop_symbol": "B",  "to_state": "q1", "push_symbols": "ε" },
+    { "from_state": "q1", "input_symbol": "ε", "pop_symbol": "Z0", "to_state": "q2", "push_symbols": "Z0" }
+  ]
+}

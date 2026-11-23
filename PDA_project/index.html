@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pushdown Automata Simulator | CSET302 Automata Theory</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Academic Navigation Header -->
+  <header class="app-header">
+    <div class="header-title">
+      <h1>Pushdown Automata Simulator</h1>
+      <p>CSET302: Automata Theory & Computability | Course Project #12</p>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-primary" id="pda-type-badge">Deterministic (DPDA)</span>
+      <span class="badge badge-success">M1 & M2 Complete</span>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Preset Selection & Import/Export Toolbar -->
+    <div class="toolbar-card">
+      <div class="preset-group">
+        <label for="preset-select">Standard PDA Presets:</label>
+        <select id="preset-select">
+          <!-- Populated dynamically via presets_data.js -->
+        </select>
+      </div>
+      <div style="display: flex; gap: 0.5rem;">
+        <button class="btn btn-outline" id="btn-export-json">Export JSON</button>
+      </div>
+    </div>
+
+    <!-- Main Workspace Grid -->
+    <div class="simulator-grid">
+
+      <!-- LEFT COLUMN: Dynamic Automaton Configuration -->
+      <div class="sidebar-col">
+        <div class="card">
+          <div class="card-header">
+            <h2>Formal 7-Tuple Specification</h2>
+            <button class="btn btn-sm btn-primary" id="btn-apply-config">Update PDA</button>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="pda-name">Automaton Name</label>
+              <input type="text" id="pda-name" value="a^n b^n (n >= 1)">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label for="states-input">States Q (comma separated)</label>
+                <input type="text" id="states-input" value="q0, q1, q2">
+              </div>
+              <div class="form-group">
+                <label for="input-alphabet-input">Input Alphabet Σ</label>
+                <input type="text" id="input-alphabet-input" value="a, b">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label for="stack-alphabet-input">Stack Alphabet Γ</label>
+                <input type="text" id="stack-alphabet-input" value="A, Z0">
+              </div>
+              <div class="form-group">
+                <label for="start-state-input">Start State q0</label>
+                <input type="text" id="start-state-input" value="q0">
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label for="start-stack-input">Initial Stack Symbol Z0</label>
+                <input type="text" id="start-stack-input" value="Z0">
+              </div>
+              <div class="form-group">
+                <label for="final-states-input">Final States F</label>
+                <input type="text" id="final-states-input" value="q2">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="acceptance-mode-input">Acceptance Condition</label>
+              <select id="acceptance-mode-input">
+                <option value="final_state">Acceptance by Final State (L_f)</option>
+                <option value="empty_stack">Acceptance by Empty Stack (L_e)</option>
+                <option value="both">Both (Final State AND Empty Stack)</option>
+              </select>
+            </div>
+
+            <div class="section-label" style="margin-top: 1rem;">
+              <span>Transition Function δ: Q × (Σ ∪ {ε}) × Γ → P(Q × Γ*)</span>
+              <button class="btn btn-sm btn-outline" id="btn-add-transition">+ Add Rule</button>
+            </div>
+
+            <div style="max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px;">
+              <table class="transition-editor-table">
+                <thead>
+                  <tr>
+                    <th>From (q)</th>
+                    <th>Input (a)</th>
+                    <th>Pop (X)</th>
+                    <th>To (p)</th>
+                    <th>Push (α)</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="transitions-tbody">
+                  <!-- Populated via app.js -->
+                </tbody>
+              </table>
+            </div>
+            <small style="color: var(--text-muted); display: block; margin-top: 0.4rem;">
+              Note: Use <code>ε</code> (epsilon) for empty string or pure pop.
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Interactive Simulation, Diagram & Stack -->
+      <div class="main-col">
+
+        <!-- Controls & Input String Panel -->
+        <div class="card">
+          <div class="card-body">
+            <div class="sim-controls-panel">
+              <div class="input-row">
+                <input type="text" id="input-string" placeholder="Enter input string (e.g. aaabbb, ε for empty string)" value="aaabbb">
+                <button class="btn btn-primary" id="btn-load">Load & Reset</button>
+              </div>
+
+              <div class="button-row">
+                <button class="btn btn-outline" id="btn-step-back">⏮ Step Back</button>
+                <button class="btn btn-success" id="btn-play">▶ Play</button>
+                <button class="btn btn-outline" id="btn-step-fwd">⏭ Step Forward</button>
+                <button class="btn btn-outline" id="btn-reset">↺ Reset</button>
+
+                <div class="speed-control">
+                  <span>Speed:</span>
+                  <input type="range" id="speed-slider" min="200" max="2000" step="100" value="700">
+                  <span id="speed-label">0.7s</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Verdict Banner -->
+            <div id="status-badge" class="status-banner"></div>
+
+            <!-- Instantaneous Description (ID) Live Banner -->
+            <div class="id-banner">
+              <div>
+                <span class="id-label">Instantaneous Description (ID): </span>
+                <span class="id-value" id="id-display">(q0, aaabbb, Z0)</span>
+              </div>
+              <div id="action-display" style="font-size: 0.85rem; color: #cbd5e1;">Initial configuration</div>
+            </div>
+
+            <!-- Input Tape Visualizer -->
+            <div class="tape-wrapper">
+              <div class="section-label">
+                <span>Input Tape & Reading Head</span>
+              </div>
+              <div class="tape-container" id="tape-container">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- State Diagram & Vertical Stack Side-by-Side -->
+            <div class="viz-row">
+              <div class="diagram-card">
+                <div class="section-label" style="padding: 0.5rem 0.75rem; margin-bottom: 0;">
+                  <span>State Transition Graph</span>
+                </div>
+                <svg id="diagram-svg"></svg>
+              </div>
+
+              <div class="stack-visualizer-box">
+                <div class="section-label">
+                  <span>Stack (LIFO)</span>
+                  <span id="stack-depth-badge" style="color: var(--primary);">Depth: 1</span>
+                </div>
+                <div class="stack-container" id="stack-container">
+                  <!-- Stack cells rendered dynamically -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Execution Trace Table -->
+            <div class="section-label">
+              <span>Step-by-Step Execution Trace</span>
+            </div>
+            <div class="trace-table-container">
+              <table class="trace-table">
+                <thead>
+                  <tr>
+                    <th>Step</th>
+                    <th>Current State</th>
+                    <th>Remaining Input</th>
+                    <th>Stack Contents</th>
+                    <th>Transition / Action</th>
+                  </tr>
+                </thead>
+                <tbody id="trace-tbody">
+                  <!-- Trace rows populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- LOWER SECTION: Batch Testing & Theory Tabs -->
+    <div class="card" style="margin-top: 1.5rem;">
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="tab-batch">Batch Test Suite & Validation</button>
+        <button class="tab-btn" data-tab="tab-theory">Theoretical Specification & Guide</button>
+        <button class="tab-btn" data-tab="tab-about">Group Members & Deliverables</button>
+      </div>
+
+      <!-- Tab 1: Batch Test Suite -->
+      <div class="tab-content active" id="tab-batch">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <div>
+            <h3>Automated Validation on Normal & Edge Cases</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Runs test strings across normal language members and edge cases to prove theoretical correctness.
+            </p>
+          </div>
+          <div>
+            <button class="btn btn-primary" id="btn-run-batch">Run All Tests</button>
+            <span id="batch-summary" style="margin-left: 1rem; font-weight: 600;"></span>
+          </div>
+        </div>
+
+        <table class="batch-results-table">
+          <thead>
+            <tr>
+              <th>Test String</th>
+              <th>Expected Outcome</th>
+              <th>Simulator Result</th>
+              <th>Validation</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="batch-tbody">
+            <!-- Populated via presets_data.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tab 2: Theory Reference -->
+      <div class="tab-content" id="tab-theory">
+        <h3 style="margin-bottom: 0.75rem;">Formal Automata Theory Specification</h3>
+        <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.95rem;">
+          A Pushdown Automaton (PDA) is formally defined as a 7-tuple:
+          <strong>M = (Q, Σ, Γ, δ, q0, Z0, F)</strong>
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+          <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="color: var(--primary); margin-bottom: 0.4rem;">Formal 7-Tuple Components</h4>
+            <ul style="font-size: 0.875rem; padding-left: 1.25rem; line-height: 1.6;">
+              <li><strong>Q</strong>: Finite set of internal states.</li>
+              <li><strong>Σ</strong>: Finite set of input symbols (Input Alphabet).</li>
+              <li><strong>Γ</strong>: Finite set of stack symbols (Stack Alphabet).</li>
+              <li><strong>δ</strong>: Transition function <code>Q × (Σ ∪ {ε}) × Γ → P(Q × Γ*)</code>.</li>
+              <li><strong>q0</strong>: Start/initial state (<code>q0 ∈ Q</code>).</li>
+              <li><strong>Z0</strong>: Initial bottom-of-stack symbol (<code>Z0 ∈ Γ</code>).</li>
+              <li><strong>F</strong>: Set of accepting states (<code>F ⊆ Q</code>).</li>
+            </ul>
+          </div>
+
+          <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="color: var(--primary); margin-bottom: 0.4rem;">Acceptance Modes</h4>
+            <ul style="font-size: 0.875rem; padding-left: 1.25rem; line-height: 1.6;">
+              <li>
+                <strong>Acceptance by Final State L(M):</strong>
+                Accepts if there exists a computation path from <code>(q0, w, Z0) ⊢* (q, ε, γ)</code> where <code>q ∈ F</code> and <code>γ ∈ Γ*</code>.
+              </li>
+              <li>
+                <strong>Acceptance by Empty Stack N(M):</strong>
+                Accepts if <code>(q0, w, Z0) ⊢* (q, ε, ε)</code> for any state <code>q ∈ Q</code>. The stack must be emptied.
+              </li>
+              <li>
+                <strong>Equivalence Theorem:</strong>
+                A language L is accepted by final state iff it is accepted by empty stack: <code>L(M1) = N(M2)</code>.
+              </li>
+            </ul>
+          </div>
+
+          <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="color: var(--primary); margin-bottom: 0.4rem;">DPDA vs. NPDA</h4>
+            <ul style="font-size: 0.875rem; padding-left: 1.25rem; line-height: 1.6;">
+              <li><strong>DPDA:</strong> At most one valid transition from any configuration. Cannot accept all CFLs (e.g. even palindromes require NPDA).</li>
+              <li><strong>NPDA:</strong> May branch nondeterministically. Recognizes the complete class of Context-Free Languages (CFLs).</li>
+              <li>This simulator implements Breadth-First Search (BFS) to exhaustively evaluate all computation branches of NPDAs without getting trapped in cycles.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Group Roles & Evaluation Criteria -->
+      <div class="tab-content" id="tab-about">
+        <h3 style="margin-bottom: 0.5rem;">CSET302 Project Group #12 — Bennett University</h3>
+        <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.9rem;">
+          Submitted to: <strong>Rashmi Ma’am</strong> | Department of Computer Science & Engineering, SCSET | Evaluated for <strong>Milestone 1 (5 Marks)</strong> and <strong>Milestone 2 (9 Marks)</strong>.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+          <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="color: var(--primary);">NAVDEEP KAUSHIK</h4>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 0.3rem;">Enrollment: S24CSEU2699 | Lead & Architect</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Formal 7-tuple specification, architecture design, BFS algorithm selection, determinism rules, and milestone coordination.
+            </p>
+          </div>
+          <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="color: var(--primary);">SHRAVAN KUMAR</h4>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 0.3rem;">Enrollment: S24CSEU2677 | Core Engine Dev</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Python core engine (src/pda_engine.py), NPDA BFS multi-branch traversal, cycle prevention, and client-side simulator.
+            </p>
+          </div>
+          <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="color: var(--primary);">AYUSH KUMAR</h4>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 0.3rem;">Enrollment: S24CSEU2698 | UI Specialist</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Animated vertical LIFO stack, input tape head animation, dynamic SVG state diagram with active glow illumination.
+            </p>
+          </div>
+          <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="color: var(--primary);">SRIJAN PANDEY</h4>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 0.3rem;">Enrollment: S24CSEU2691 | QA & Testing</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Automated Python unit test suite (tests/test_pda.py), 21-case test matrix, preset library curation, and hand-computed trace validation.
+            </p>
+          </div>
+          <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; border: 1px solid var(--border);">
+            <h4 style="color: var(--primary);">PIYUSH DAGAR</h4>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #1e293b; margin-bottom: 0.3rem;">Enrollment: S24CSEU2680 | Documentation</div>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Milestone-II technical documentation report, user manual, viva-voce defense preparation guide, and presentation slide deck.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/presets_data.js"></script>
+  <script src="js/pda_simulator.js"></script>
+  <script src="js/visualizer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
